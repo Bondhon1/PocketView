@@ -1,0 +1,19 @@
+{
+  "name": "pocketview",
+  "version": "0.1.0",
+  "description": "Minimal proxy CLI",
+  "type": "module",
+  "bin": {
+    "mlp": "./bin/mlp.js"
+  },
+  "scripts": {
+    "start": "node ./bin/mlp.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.3"
+  }
+}
