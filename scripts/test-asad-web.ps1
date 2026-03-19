@@ -5,8 +5,8 @@ $pocketViewPath = 'f:\tmp\projects\PocketView'
 $asadWebPath = 'f:\tmp\projects\ASAD\web'
 $targetUrl = 'http://localhost:3000'
 $proxyPort = 5076
-$desktopUrl = "http://localhost:$proxyPort/?mode=desktop"
-$mobileUrl = "http://localhost:$proxyPort/?mode=mobile&mw=412&mh=915&device=Pixel%207"
+$devtoolUrl = "http://localhost:$proxyPort/?pv=1&mw=412&mh=915&device=Pixel%207"
+$mobileUrl = "http://localhost:$proxyPort/?pv=1&pv_mode=mobile&mw=412&mh=915&device=Pixel%207"
 
 Set-Location $pocketViewPath
 
@@ -58,7 +58,7 @@ if (-not $targetAlreadyUp) {
 $proc = Start-Process node -ArgumentList './bin/mlp.js', $targetUrl, "$proxyPort", '--device', 'Pixel 7' -PassThru -RedirectStandardOutput $outLog -RedirectStandardError $errLog
 
 try {
-  $proxyUp = Wait-Url -url $desktopUrl -retries 90 -timeoutSecondsPerTry 5
+  $proxyUp = Wait-Url -url $devtoolUrl -retries 90 -timeoutSecondsPerTry 5
 
   if (-not $proxyUp) {
     Write-Output 'PROXY_NOT_UP'
@@ -67,12 +67,13 @@ try {
     exit 1
   }
 
-  $desktopResponse = Invoke-WebRequest -Uri $desktopUrl -UseBasicParsing -TimeoutSec 60
+  $desktopResponse = Invoke-WebRequest -Uri $devtoolUrl -UseBasicParsing -TimeoutSec 60
   $mobileResponse = Invoke-WebRequest -Uri $mobileUrl -UseBasicParsing -TimeoutSec 60
 
-  $desktopOk = $desktopResponse.Content -match '__pocketview_ws'
-  $mobileOk = ($mobileResponse.Content -match '__pocketview_ws') -and
-              ($mobileResponse.Content -match 'isMobileMode') -and
+  $desktopOk = ($desktopResponse.Content -match 'pocketview-devtool-root') -and
+               ($desktopResponse.Content -match 'PocketView') -and
+               ($desktopResponse.Content -match 'pv_mode')
+  $mobileOk = ($mobileResponse.Content -match 'isMobileMode') -and
               ($mobileResponse.Content -match 'pocketview-mobile-frame') -and
               ($mobileResponse.Content -match 'getMobileWidth')
 
