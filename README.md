@@ -7,7 +7,7 @@ PocketView is a lightweight proxy that injects a floating mobile preview panel i
 - Single-page developer preview (no second browser window required)
 - Draggable floating mobile preview panel
 - Desktop/mobile sync for route changes, scroll, and click actions
-- Device presets from CLI (`iPhone SE`, `iPhone 14`, `Pixel 7`)
+- Device presets from CLI and in-panel selector (`iPhone` + `Android`)
 - Works by proxying an existing local app URL
 
 ## Requirements
@@ -24,28 +24,33 @@ npm install
 ## Run
 
 ```bash
-node ./bin/mlp.js <target-url> [port] --device "<preset>"
+npm run dev -- <target-url> [port] --device "<preset>"
 ```
 
 Example:
 
 ```bash
-node ./bin/mlp.js http://localhost:3000 5076 --device "Pixel 7"
+npm run dev -- http://localhost:3000 5076 --device "Pixel 8 Pro"
 ```
 
 PocketView will print and open a URL like:
 
-`http://localhost:5076/?pv=1&mw=412&mh=915&device=Pixel+7`
+`http://localhost:5076/?pv=1&mw=448&mh=998&device=Pixel+8+Pro`
+
+If the preferred port is already busy, PocketView automatically selects the next available port.
+
+If no target URL is passed, PocketView defaults to `http://localhost:3000` (or `POCKETVIEW_TARGET` if set).
 
 ## CLI usage
 
 ```text
-mlp <target-url> [port] [--device <preset>]
+mlp [target-url] [port] [--device <preset>] [--port <port>]
 ```
 
-- `target-url`: required (the app to proxy)
-- `port`: optional (default: `5050`)
-- `--device`: optional preset (`iPhone SE`, `iPhone 14`, `Pixel 7`)
+- `target-url`: optional (default: `http://localhost:3000`)
+- `port`: optional (default preference: `5050`, auto-falls forward if busy)
+- `--port`: optional named form of port argument
+- `--device`: optional preset (`iPhone SE`, `iPhone 14`, `iPhone 14 Pro Max`, `Pixel 7`, `Pixel 8 Pro`, `Galaxy S23`, `Galaxy Z Fold 5`)
 
 ## Live workflow with ASAD/web
 
@@ -55,7 +60,7 @@ From this repository:
 2. Start PocketView proxy:
 
 ```bash
-node ./bin/mlp.js http://localhost:3000 5076 --device "Pixel 7"
+npm run dev -- http://localhost:3000 5076 --device "Pixel 7"
 ```
 
 3. Open:
