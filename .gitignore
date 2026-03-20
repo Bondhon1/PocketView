@@ -2,6 +2,7 @@ node_modules/
 
 # Runtime temp files
 .tmp_*.log
+.tmp_proxy_*.log
 
 # Logs
 npm-debug.log*
