@@ -906,8 +906,33 @@ function shouldInjectHtml(proxyRes, req) {
   return true;
 }
 
-function writeProxyHeaders(res, proxyRes, { stripLength = false } = {}) {
+function writeProxyHeaders(res, proxyRes, { stripLength = false } = {}, req = null) {
   const headers = { ...proxyRes.headers };
+
+  const statusCode = proxyRes.statusCode || 200;
+  if (statusCode >= 300 && statusCode < 400 && headers.location && req) {
+    const pvParamNames = ["pv", "pv_mode", "mw", "mh", "device"];
+    try {
+      const reqParams = new URLSearchParams(new URL(req.url, "http://localhost").search);
+      const hasPvParams = pvParamNames.some((p) => reqParams.has(p));
+      if (hasPvParams) {
+        const isAbsolute = /^https?:\/\//i.test(headers.location);
+        const base = isAbsolute ? undefined : "http://localhost";
+        const redirectUrl = new URL(headers.location, base);
+        for (const param of pvParamNames) {
+          if (reqParams.has(param)) {
+            redirectUrl.searchParams.set(param, reqParams.get(param));
+          }
+        }
+        headers.location = isAbsolute
+          ? redirectUrl.toString()
+          : redirectUrl.pathname + redirectUrl.search + redirectUrl.hash;
+      }
+    } catch (_e) {
+      // leave Location header unchanged on parse failure
+    }
+  }
+
   if (stripLength) {
     delete headers["content-length"];
     delete headers["Content-Length"];
@@ -915,7 +940,7 @@ function writeProxyHeaders(res, proxyRes, { stripLength = false } = {}) {
   delete headers["content-encoding"];
   delete headers["Content-Encoding"];
 
-  res.writeHead(proxyRes.statusCode || 200, headers);
+  res.writeHead(statusCode, headers);
 }
 
 function streamInjectedHtml(proxyRes, req, res) {
@@ -1014,12 +1039,12 @@ export function startProxyServer({ target, port, device = { name: "iPhone SE", w
         },
         proxyRes: (proxyRes, req, res) => {
           if (!shouldInjectHtml(proxyRes, req)) {
-            writeProxyHeaders(res, proxyRes);
+            writeProxyHeaders(res, proxyRes, {}, req);
             proxyRes.pipe(res);
             return;
           }
 
-          writeProxyHeaders(res, proxyRes, { stripLength: true });
+          writeProxyHeaders(res, proxyRes, { stripLength: true }, req);
           streamInjectedHtml(proxyRes, req, res);
         }
       }
